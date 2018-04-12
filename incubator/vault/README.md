@@ -96,7 +96,9 @@ data:
 vault:
   tls:
     enabled: true
-    ca_path: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+  env:
+  - name: VAULT_CAPATH
+    value: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
   customSecrets:
   - secretName: vault-tls
     mountPath: /vault/tls

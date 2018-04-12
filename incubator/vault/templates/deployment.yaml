@@ -57,13 +57,6 @@ spec:
           capabilities:
             add:
             - IPC_LOCK
-        env:
-          - name: POD_IP
-            valueFrom:
-              fieldRef:
-                fieldPath: status.podIP
-          - name: VAULT_CLUSTER_ADDR
-            value: "https://$(POD_IP):8201"
         volumeMounts:
         - name: vault-config
           mountPath: /vault/config/
@@ -73,6 +66,8 @@ spec:
         - name: {{ .secretName }}
           mountPath: {{ .mountPath }}
         {{- end }}
+        env:
+{{ toYaml .Values.vault.env | indent 10 }}
         resources:
 {{ toYaml .Values.resources | indent 10 }}
       {{- if .Values.affinity }}
