@@ -66,8 +66,8 @@ vault:
   env:
   - name: VAULT_ADDR
     value: http://127.0.0.1:8200
-  #- name: VAULT_CAPATH
-  #  value: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+  # - name: VAULT_CAPATH
+  #   value: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
   customSecrets: []
     # - secretName: vault-tls
     #   mountPath: /vault/tls
