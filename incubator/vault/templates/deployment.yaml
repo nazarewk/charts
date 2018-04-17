@@ -29,14 +29,54 @@ spec:
         {{- end}}
       {{- end}}
     spec:
+      {{- if .Values.vault.podDNSAsClusterAddr }}
+      initContainers:
+      - name: init
+        image: stedolan/jq
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command:
+        - bash
+        - -c
+        - jq -Mc ".cluster_addr=\"http{{- if not .Values.vault.config.listener.tcp.tls_disable -}}s{{- end -}}://${POD_IP//./-}.${POD_NAMESPACE}.pod.cluster.local:{{ .Values.service.clusterPort }}\"" /vault/config/config.json > /root/config.json
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: vault-config
+          mountPath: /vault/config/
+        - name: vault-root
+          mountPath: /root/
+      {{- end }}
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{- if .Values.vault.dev }}
-        command: ["vault", "server", "-dev", "-dev-listen-address", "[::]:8200"]
+        command:
+        - "vault"
+        - "server"
+        - "-log-level={{ .Values.vault.logLevel }}"
+        - "-dev"
+        - "-dev-listen-address"
+        - "[::]:8200"
         {{- else }}
-        command: ["vault", "server", "-config", "/vault/config/config.json"]
+        command:
+        - "vault"
+        - "server"
+        - "-log-level={{ .Values.vault.logLevel }}"
+        {{- if .Values.vault.podDNSAsClusterAddr }}
+        - "-config"
+        - "/root/config.json"
+        {{- else }}
+        - "-config"
+        - "/vault/config/config.json"
+        {{- end }}
         {{- end }}
         ports:
         - containerPort: {{ .Values.service.port }}
@@ -84,13 +124,13 @@ spec:
 {{ tpl .Values.affinity . | indent 8 }}
       {{- end }}
       volumes:
-        - name: vault-config
-          configMap:
-            name: "{{ template "vault.fullname" . }}-config"
-        - name: vault-root
-          emptyDir: {}
-        {{- range .Values.vault.customSecrets }}
-        - name: {{ .secretName }}
-          secret:
-            secretName: {{ .secretName }}
-        {{- end }}
+      - name: vault-config
+        configMap:
+          name: "{{ template "vault.fullname" . }}-config"
+      - name: vault-root
+        emptyDir: {}
+      {{- range .Values.vault.customSecrets }}
+      - name: {{ .secretName }}
+        secret:
+          secretName: {{ .secretName }}
+      {{- end }}

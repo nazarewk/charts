@@ -59,6 +59,8 @@ vault:
   # https://www.vaultproject.io/intro/getting-started/dev-server.html for more
   # information.
   dev: true
+  logLevel: info
+  podDNSAsClusterAddr: false
   # Allows the mounting of various custom secrets th enable production vault
   # configurations. The comments show an example usage for mounting a TLS
   # secret. The two fields required are a secretName indicating the name of
@@ -72,16 +74,9 @@ vault:
     value: http://127.0.0.1:8200
   # - name: VAULT_CAPATH
   #   value: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-  - name: POD_NAME
-    valueFrom:
-      fieldRef:
-        fieldPath: metadata.name
-  - name: POD_NAMESPACE
-    valueFrom:
-      fieldRef:
-        fieldPath: metadata.namespace
-  - name: VAULT_CLUSTER_ADDR
-    value: "https://$(POD_NAME).$(POD_NAMESPACE).pod.cluster.local:8201"
+  customSecrets: []
+  # - secretName: vault-tls
+  #   mountPath: /vault/tls
   annotations: []
   # - key: example-key
   #   value: example-value
