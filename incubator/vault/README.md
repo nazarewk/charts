@@ -133,6 +133,6 @@ read -rsp 'Vault Unseal Key: ' key
 echo
 for pod in $(kubectl -n ${namespace} get pods -l release=${release} -o json | jq -r '.items[] | select(.status.phase == "Running" and (.status.containerStatuses | any(.name == "vault" and (.ready | not)))) | .metadata.name')
 do
-    kubectl -n ${namespace} exec -ti ${pod} vault operator unseal "${key}"
+    kubectl -n ${namespace} exec -ti ${pod} -c vault vault operator unseal "${key}"
 done
 ```
