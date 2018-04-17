@@ -75,7 +75,11 @@ $ vault status
 
 This is example of running Vault with Kubernetes generated TLS certificate:
 
-1. Create `CertificateSigningRequest` according to [documentation](https://kubernetes.io/docs/tasks/tls/managing-tls-in-a-cluster/):
+1. Create `CertificateSigningRequest` according to [documentation](https://kubernetes.io/docs/tasks/tls/managing-tls-in-a-cluster/),
+    some useful hosts entries to add:
+   - `127.0.0.1` for running Vault commands inside the pod,
+   - `*.<namespace>.pod.cluster.local` for direct Pod to Pod communication,
+   - `<release>.<namespace>.svc.cluster.local` for communication within cluster,
 
 1. Create `Secret` holding certificate and private key PEM:
 
