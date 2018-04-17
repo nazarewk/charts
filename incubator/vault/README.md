@@ -94,9 +94,10 @@ data:
 
 ```yaml
 vault:
-  tls:
-    enabled: true
+  podDNSAsClusterAddr: true
   env:
+  - name: VAULT_ADDR
+    value: https://127.0.0.1:8200
   - name: VAULT_CAPATH
     value: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
   customSecrets:
