@@ -1,17 +1,20 @@
 # Default values for vault.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
-replicaCount: 3
+replicaCount: 1
+maxUnavailable: 1
+# Allow to create all missing pods
+maxSurge: "100%"
 image:
   repository: vault
-  tag: 0.9.0
+  tag: 0.10.0
   pullPolicy: IfNotPresent
 service:
   name: vault
   type: ClusterIP
   externalPort: 8200
   port: 8200
-  annotations: {}
+  clusterPort: 8201
   # clusterIP: None
   # annotations:
   #   cloud.google.com/load-balancer-type: "Internal"
@@ -49,25 +52,40 @@ affinity: |
           matchLabels:
             app: {{ template "vault.fullname" . }}
             release: {{ .Release.Name }}
-podAnnotations: {}
+
 vault:
   # Only used to enable dev mode. When in dev mode, the rest of this config
   # section below is not used to configure Vault. See
   # https://www.vaultproject.io/intro/getting-started/dev-server.html for more
   # information.
   dev: true
+  logLevel: info
+  podDNSAsClusterAddr: false
   # Allows the mounting of various custom secrets th enable production vault
   # configurations. The comments show an example usage for mounting a TLS
   # secret. The two fields required are a secretName indicating the name of
   # the Kuberentes secret (created outside of this chart), and the mountPath
   # at which it should be mounted in the Vault container.
+  env:
+  - name: VAULT_ADDR
+    value: http://127.0.0.1:8200
+  # - name: VAULT_CAPATH
+  #   value: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
   customSecrets: []
-    # - secretName: vault-tls
-    #   mountPath: /vault/tls
-  readiness:
-    readyIfSealed: false
-    readyIfStandby: true
-    readyIfUninitialized: true
+  # - secretName: vault-tls
+  #   mountPath: /vault/tls
+  annotations: []
+  # - key: example-key
+  #   value: example-value
+  labels: {}
+  readinessParams:
+    # https://www.vaultproject.io/api/system/health.html
+    standbycode: "200"
+    #  standbyok: "false"
+    #  activecode: "200"
+    #  standbycode: "429"
+    #  sealedcode: "503"
+    #  uninitcode: "501"
   config:
     # A YAML representation of a final vault config.json file.
     # See https://www.vaultproject.io/docs/configuration/ for more information.
